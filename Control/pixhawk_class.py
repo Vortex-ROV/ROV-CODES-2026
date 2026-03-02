@@ -1,4 +1,4 @@
-from PySide6.QtCore import QThread
+from PyQt6.QtCore import QThread
 from pymavlink import mavutil
 import time
 
@@ -16,28 +16,44 @@ class Pixhawk(QThread):
         self.__armed = False
         self.__last_time_seen = 0
         self.__connected = False
+        self.__max_pwm_value = 1800
+        self.__min_pwm_value = 1200
         self.sent_armed = False
         self.sent_mode = ""
 
+    def set_min_pwm_value(self, value):
+        self.__min_pwm_value = value
+        if value < 1100: self.__min_pwm_value = 1700
+        elif value > 1500: self.__min_pwm_value = 1500
+    
+    def set_max_pwm_value(self, value):
+        self.__max_pwm_value = value
+        if value > 1900: self.__max_pwm_value = 1900
+        elif value < 1500: self.__max_pwm_value = 1500
+    
+    def get_min_pwm_value(self): return self.__min_pwm_value
+
+    def get_max_pwm_value(self): return self.__max_pwm_value
+
     def set_throttle_value(self, value):
         self.__throttle_value += value
-        if self.__throttle_value > 1900: self.__throttle_value = 1900
-        elif self.__throttle_value < 1100: self.__throttle_value = 1100
+        if self.__throttle_value > self.__max_pwm_value: self.__throttle_value = self.__max_pwm_value
+        elif self.__throttle_value < self.__min_pwm_value: self.__throttle_value = self.__min_pwm_value
 
     def set_yaw_value(self, value):
         self.__yaw_value += value
-        if self.__yaw_value > 1900: self.__yaw_value = 1900
-        elif self.__yaw_value < 1100: self.__yaw_value = 1100
+        if self.__yaw_value > self.__max_pwm_value: self.__yaw_value = self.__max_pwm_value
+        elif self.__yaw_value < self.__min_pwm_value: self.__yaw_value = self.__min_pwm_value
 
     def set_forward_value(self, value):
         self.__forward_value += value
-        if self.__forward_value > 1900: self.__forward_value = 1900
-        elif self.__forward_value < 1100: self.__forward_value = 1100
+        if self.__forward_value > self.__max_pwm_value: self.__forward_value = self.__max_pwm_value
+        elif self.__forward_value < self.__min_pwm_value: self.__forward_value = self.__min_pwm_value
 
     def set_lateral_value(self, value):
         self.__lateral_value += value
-        if self.__lateral_value > 1900: self.__lateral_value = 1900
-        elif self.__lateral_value < 1100: self.__lateral_value = 1100
+        if self.__lateral_value > self.__max_pwm_value: self.__lateral_value = self.__max_pwm_value
+        elif self.__lateral_value < self.__min_pwm_value: self.__lateral_value = self.__min_pwm_value
     
     def movements_values_reset(self):
         self.__throttle_value = 1500
@@ -114,7 +130,6 @@ class Pixhawk(QThread):
     
     def move_rov(self):
         rc_channel_values = [1500, 1500,self.__throttle_value, self.__yaw_value, self.__forward_value, self.__lateral_value, 65535, 65535, 65535]
-        # print(self.__throttle_value, self.__yaw_value, self.__forward_value, self.__lateral_value)
         if self.__connected:
             self.__pixhawk.mav.rc_channels_override_send(
                 self.__pixhawk.target_system,
@@ -127,4 +142,5 @@ class Pixhawk(QThread):
             self.control_disarm()
             self.__pixhawk.close()
         self.__running = False
+        self.wait
         
