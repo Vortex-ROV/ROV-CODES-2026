@@ -42,7 +42,7 @@ class GUIControllerButtonActions(Enum):
     GRIPPER_A = 1
     GRIPPER_B = 2
     GRIPPER_C = 3
-    FINGERS = 4
+    GRIPPER_D = 4
     ROTATE_TOOL = 5
     ARM_DISARM = 6
     ARM = 7
@@ -52,10 +52,11 @@ class GUIControllerButtonActions(Enum):
     DEPTH_HOLD_MODE = 11
     SERVO_UP = 12
     SERVO_DOWN = 13
-    GAIN_INCREASE = 14
-    GAIN_DECREASE = 15
-    SCROLL_CAMERA_FORWARD = 16
-    SCROLL_CAMERA_BACKWARD = 17
+    SERVO_STOP = 14
+    GAIN_INCREASE = 15
+    GAIN_DECREASE = 16
+    SCROLL_CAMERA_FORWARD = 17
+    SCROLL_CAMERA_BACKWARD = 18
 
 class GUIControllerMovementActions(Enum):
     NONE = 0

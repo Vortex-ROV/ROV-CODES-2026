@@ -36,22 +36,22 @@ class Pixhawk(QThread):
     def get_max_pwm_value(self): return self.__max_pwm_value
 
     def set_throttle_value(self, value):
-        self.__throttle_value += value
+        self.__throttle_value = value
         if self.__throttle_value > self.__max_pwm_value: self.__throttle_value = self.__max_pwm_value
         elif self.__throttle_value < self.__min_pwm_value: self.__throttle_value = self.__min_pwm_value
 
     def set_yaw_value(self, value):
-        self.__yaw_value += value
+        self.__yaw_value = value
         if self.__yaw_value > self.__max_pwm_value: self.__yaw_value = self.__max_pwm_value
         elif self.__yaw_value < self.__min_pwm_value: self.__yaw_value = self.__min_pwm_value
 
     def set_forward_value(self, value):
-        self.__forward_value += value
+        self.__forward_value = value
         if self.__forward_value > self.__max_pwm_value: self.__forward_value = self.__max_pwm_value
         elif self.__forward_value < self.__min_pwm_value: self.__forward_value = self.__min_pwm_value
 
     def set_lateral_value(self, value):
-        self.__lateral_value += value
+        self.__lateral_value = value
         if self.__lateral_value > self.__max_pwm_value: self.__lateral_value = self.__max_pwm_value
         elif self.__lateral_value < self.__min_pwm_value: self.__lateral_value = self.__min_pwm_value
     
@@ -95,7 +95,7 @@ class Pixhawk(QThread):
 
     def run(self):
         self.__running = True
-        self.__pixhawk = mavutil.mavlink_connection("udp:127.0.0.1:14561", autoreconnect=True, source_system=1)
+        self.__pixhawk = mavutil.mavlink_connection("udp:192.168.33.2:14550", autoreconnect=True, source_system=1)
         print("Waiting to connect to the pixhawk...")
         self.__pixhawk.wait_heartbeat()
         print("Got a heartbeat")
@@ -116,6 +116,7 @@ class Pixhawk(QThread):
                         else: print("disarmed")
 
                     self.mode = mavutil.mode_string_v10(msg)
+                    print(self.mode)
                     if self.mode != self.sent_mode:
                         self.sent_mode = self.mode
                         if self.mode == "MANUAL": print("manual mode")
@@ -130,17 +131,19 @@ class Pixhawk(QThread):
     
     def move_rov(self):
         rc_channel_values = [1500, 1500,self.__throttle_value, self.__yaw_value, self.__forward_value, self.__lateral_value, 65535, 65535, 65535]
+        # print(rc_channel_values)
         if self.__connected:
+            # pass
             self.__pixhawk.mav.rc_channels_override_send(
                 self.__pixhawk.target_system,
                 self.__pixhawk.target_component,
                 *rc_channel_values)
-        self.movements_values_reset()
+            self.movements_values_reset()
     def stop(self):
         if self.__connected:
             self.__connected = False
             self.control_disarm()
             self.__pixhawk.close()
         self.__running = False
-        self.wait
+        # self.wait
         

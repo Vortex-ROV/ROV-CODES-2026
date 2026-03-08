@@ -32,6 +32,7 @@ class Joystick(QThread):
 
         # initialize pcb control class and pixhawk control class
         self.pcb = PCB()
+        self.pcb.start()
         self.pixhawk = Pixhawk()
         self.pixhawk.start()
 
@@ -40,10 +41,11 @@ class Joystick(QThread):
             GUIControllerButtonActions.GRIPPER_A: self.pcb.control_gripper_a,
             GUIControllerButtonActions.GRIPPER_B: self.pcb.control_gripper_b,
             GUIControllerButtonActions.GRIPPER_C: self.pcb.control_gripper_c,
-            GUIControllerButtonActions.FINGERS: self.pcb.control_fingers,
+            GUIControllerButtonActions.GRIPPER_D: self.pcb.control_gripper_d,
             GUIControllerButtonActions.ROTATE_TOOL: self.pcb.control_rotating_tool,
             GUIControllerButtonActions.SERVO_UP: self.pcb.control_raise_camera,
             GUIControllerButtonActions.SERVO_DOWN: self.pcb.control_lower_camera,
+            GUIControllerButtonActions.SERVO_STOP: self.pcb.control_camera_stop,
             GUIControllerButtonActions.GAIN_INCREASE: self.increase_gain,
             GUIControllerButtonActions.GAIN_DECREASE: self.decrease_gain,
             GUIControllerButtonActions.ARM_DISARM: self.pixhawk.control_arm_disarm,
@@ -65,9 +67,9 @@ class Joystick(QThread):
             JoystickButtons.A.value: self.__rov_actions[GUIControllerButtonActions.GRIPPER_A],
             JoystickButtons.B.value: self.__rov_actions[GUIControllerButtonActions.GRIPPER_B],
             JoystickButtons.X.value: self.__rov_actions[GUIControllerButtonActions.GRIPPER_C],
-            JoystickButtons.Y.value: self.__rov_actions[GUIControllerButtonActions.FINGERS],
-            JoystickButtons.LT.value: self.__rov_actions[GUIControllerButtonActions.NONE],
-            JoystickButtons.RT.value: self.__rov_actions[GUIControllerButtonActions.ARM_DISARM],
+            JoystickButtons.Y.value: self.__rov_actions[GUIControllerButtonActions.GRIPPER_D],
+            JoystickButtons.LT.value: self.__rov_actions[GUIControllerButtonActions.ARM_DISARM],
+            JoystickButtons.RT.value: self.__rov_actions[GUIControllerButtonActions.ROTATE_TOOL],
             JoystickButtons.BACK.value: self.__rov_actions[GUIControllerButtonActions.STABILIZE_MODE],
             JoystickButtons.START.value: self.__rov_actions[GUIControllerButtonActions.NONE],
             JoystickButtons.XBOX.value: self.__rov_actions[GUIControllerButtonActions.MANUAL_MODE],
@@ -213,6 +215,7 @@ class Joystick(QThread):
                     if self.__button_action_mapping[JoystickHats.HATUP] != "":
                         self.__press_event(self.__button_action_mapping[JoystickHats.HATUP])                        
                 elif self.__controller_hat_data[1] == 0 and self.__controller_last_hats_data[1] == 1: # release
+                    self.__release_event(self.pcb.control_camera_stop)
                     pass
                 else: pass
 
@@ -221,6 +224,7 @@ class Joystick(QThread):
                     if self.__button_action_mapping[JoystickHats.HATDOWN] != "":
                         self.__press_event(self.__button_action_mapping[JoystickHats.HATDOWN])
                 elif self.__controller_hat_data[1] == 0 and self.__controller_last_hats_data[1] == -1: # release
+                    self.__release_event(self.pcb.control_camera_stop)
                     pass
                 else: pass
 
@@ -246,11 +250,11 @@ class Joystick(QThread):
                 if self.platform == "Linux":
                     self.__controller_raw_axes_data[2] = self.__map_value(self.__controller_raw_axes_data[2], -1, 1, 0, 1)
                     self.__controller_raw_axes_data[5] = self.__map_value(self.__controller_raw_axes_data[5], -1, 1, 0, 1)
-                    self.__controller_mapped_axes_data[0] += int(-400*self.__controller_raw_axes_data[1]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[1] += int(400*self.__controller_raw_axes_data[0]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[2] += int(-400*self.__controller_raw_axes_data[4]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[3] += int(400*self.__controller_raw_axes_data[3]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[4] += int(400*self.__controller_raw_axes_data[5]*(self.__gain/100) + -400*self.__controller_raw_axes_data[2]*(self.__gain/100))
+                    self.__controller_mapped_axes_data[0] += int(-400*self.__controller_raw_axes_data[1]*(self.__gain/100)) + 1500
+                    self.__controller_mapped_axes_data[1] += int(400*self.__controller_raw_axes_data[0]*(self.__gain/100)) + 1500
+                    self.__controller_mapped_axes_data[2] += int(-400*self.__controller_raw_axes_data[4]*(self.__gain/100)) + 1500
+                    self.__controller_mapped_axes_data[3] += int(400*self.__controller_raw_axes_data[3]*(self.__gain/100)) + 1500
+                    self.__controller_mapped_axes_data[4] += int(400*self.__controller_raw_axes_data[5]*(self.__gain/100) + -400*self.__controller_raw_axes_data[2]*(self.__gain/100)) + 1500
                 
                 elif self.platform == "Windows":
                     self.__controller_raw_axes_data[4] = self.__map_value(self.__controller_raw_axes_data[4], -1, 1, 0, 1)
@@ -292,6 +296,7 @@ class Joystick(QThread):
         pygame.joystick.quit()
         pygame.quit()
         self.pixhawk.stop()
+        self.pcb.stop()
         self.__running = False
     
 if __name__ == "__main__":
