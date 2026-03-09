@@ -1,17 +1,32 @@
 from enum import Enum
+import platform
 
 class JoystickButtons(Enum):
-    A = 0
-    B = 1
-    X = 2
-    Y = 3
-    LT = 4
-    RT = 5
-    BACK = 6
-    START = 7
-    XBOX = 8
-    LSTCIK = 9
-    RSTCIK = 10
+    if platform.system() == "Windows":
+        A = 0
+        B = 1
+        X = 2
+        Y = 3
+        LT = 4
+        RT = 5
+        BACK = 6
+        START = 7
+        LSTCIK = 8
+        RSTCIK = 9
+        XBOX = 10
+        
+    else:
+        A = 0
+        B = 1
+        X = 2
+        Y = 3
+        LT = 4
+        RT = 5
+        BACK = 6
+        START = 7
+        XBOX = 8
+        LSTCIK = 9
+        RSTCIK = 10
 
 class JoystickHats(Enum):
     HATRIGHT = 13
@@ -57,6 +72,7 @@ class GUIControllerButtonActions(Enum):
     GAIN_DECREASE = 16
     SCROLL_CAMERA_FORWARD = 17
     SCROLL_CAMERA_BACKWARD = 18
+
 
 class GUIControllerMovementActions(Enum):
     NONE = 0
