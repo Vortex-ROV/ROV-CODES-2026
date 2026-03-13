@@ -27,13 +27,13 @@ class PCB(QThread):
                                   "bilge": 0, 
                                   "angle": 1500, 
                                   "servo_direction": 0 }
-        print(json.dumps(self.__arduino_control))
+        # print(json.dumps(self.__arduino_control))
     
     def control_gripper_a(self):
         self.__gripper_a = not self.__gripper_a
-        self.__arduino_control["Mosfet1"] = not self.__arduino_control["Mosfet1"]
-        if self.__gripper_a: self.__arduino_control["Mosfet1"] = 1
-        elif self.__gripper_a == 0: self.__arduino_control["Mosfet1"] = 0
+        self.__arduino_control["Mosfet3"] = not self.__arduino_control["Mosfet3"]
+        if self.__gripper_a: self.__arduino_control["Mosfet3"] = 1
+        elif self.__gripper_a == 0: self.__arduino_control["Mosfet3"] = 0
         print("Gripper A:", self.__gripper_a)
 
     def control_gripper_b(self):
@@ -84,10 +84,10 @@ class PCB(QThread):
                 print("Connected to Jetson")
                 while self.connected:
                     control_string = json.dumps(self.__arduino_control)
-                    print(control_string)
+                    # print(control_string)
                     control_string += '\n'
                     self.__socket.sendall(control_string.encode())
-                    self.msleep(50)
+                    self.msleep(100)
                 break
             except (ConnectionRefusedError, ConnectionResetError, OSError) as e:
                 self.connected = False

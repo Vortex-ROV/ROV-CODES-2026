@@ -72,6 +72,7 @@ class GUIControllerButtonActions(Enum):
     GAIN_DECREASE = 16
     SCROLL_CAMERA_FORWARD = 17
     SCROLL_CAMERA_BACKWARD = 18
+    FLIP_ROV = 19
 
 
 class GUIControllerMovementActions(Enum):

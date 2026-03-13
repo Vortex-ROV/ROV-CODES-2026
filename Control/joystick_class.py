@@ -46,12 +46,13 @@ class Joystick(QThread):
             GUIControllerButtonActions.SERVO_UP: self.pcb.control_raise_camera,
             GUIControllerButtonActions.SERVO_DOWN: self.pcb.control_lower_camera,
             GUIControllerButtonActions.SERVO_STOP: self.pcb.control_camera_stop,
-            GUIControllerButtonActions.GAIN_INCREASE: self.increase_gain,
-            GUIControllerButtonActions.GAIN_DECREASE: self.decrease_gain,
+            GUIControllerButtonActions.GAIN_INCREASE: self.pixhawk.increase_gain,
+            GUIControllerButtonActions.GAIN_DECREASE: self.pixhawk.decrease_gain,
             GUIControllerButtonActions.ARM_DISARM: self.pixhawk.control_arm_disarm,
             GUIControllerButtonActions.MANUAL_MODE: self.pixhawk.control_manual_mode,
             GUIControllerButtonActions.STABILIZE_MODE: self.pixhawk.control_stabilize_mode,
             GUIControllerButtonActions.DEPTH_HOLD_MODE: self.pixhawk.control_depth_hold_mode,
+            GUIControllerButtonActions.FLIP_ROV: self.pixhawk.control_flip_rov,
             GUIControllerButtonActions.NONE: "none"
         }
 
@@ -74,7 +75,7 @@ class Joystick(QThread):
             JoystickButtons.START.value: self.__rov_actions[GUIControllerButtonActions.NONE],
             JoystickButtons.XBOX.value: self.__rov_actions[GUIControllerButtonActions.MANUAL_MODE],
             JoystickButtons.LSTCIK.value: self.__rov_actions[GUIControllerButtonActions.NONE], 
-            JoystickButtons.RSTCIK.value: self.__rov_actions[GUIControllerButtonActions.NONE],
+            JoystickButtons.RSTCIK.value: self.__rov_actions[GUIControllerButtonActions.FLIP_ROV],
             JoystickHats.HATUP: self.__rov_actions[GUIControllerButtonActions.SERVO_UP],
             JoystickHats.HATDOWN: self.__rov_actions[GUIControllerButtonActions.SERVO_DOWN],
             JoystickHats.HATRIGHT: self.__rov_actions[GUIControllerButtonActions.GAIN_INCREASE],
@@ -99,7 +100,7 @@ class Joystick(QThread):
             JoystickAxes.LEFTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.FORWARD],
             JoystickAxes.LEFTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.LATERAL],
             JoystickAxes.RIGHTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.THROTTLE],
-            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.NONE],
+            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.LATERAL],
             JoystickAxes.TRIGGERS.value: self.__rov_movements[GUIControllerMovementActions.YAW]
         }
 
@@ -189,8 +190,12 @@ class Joystick(QThread):
                 
                 # read axes data
                 for i in range(self.__controller_axes_count):
-                    self.__controller_raw_axes_data.append(self.__controller.get_axis(i))
-                
+                    if self.__controller.get_axis(i) > 0.1 or self.__controller.get_axis(i) < -0.1 :
+                        self.__controller_raw_axes_data.append(self.__controller.get_axis(i))
+                        # print(self.__controller.get_axis(i), end='')
+                    else: self.__controller_raw_axes_data.append(0)
+                # print()
+                    
                 # read hat data
                 self.__controller_hat_data = self.__controller.get_hat(0)
 
@@ -250,20 +255,20 @@ class Joystick(QThread):
                 if self.platform == "Linux":
                     self.__controller_raw_axes_data[2] = self.__map_value(self.__controller_raw_axes_data[2], -1, 1, 0, 1)
                     self.__controller_raw_axes_data[5] = self.__map_value(self.__controller_raw_axes_data[5], -1, 1, 0, 1)
-                    self.__controller_mapped_axes_data[0] += int(-400*self.__controller_raw_axes_data[1]*(self.__gain/100)) + 1500
-                    self.__controller_mapped_axes_data[1] += int(400*self.__controller_raw_axes_data[0]*(self.__gain/100)) + 1500
-                    self.__controller_mapped_axes_data[2] += int(-400*self.__controller_raw_axes_data[4]*(self.__gain/100)) + 1500
-                    self.__controller_mapped_axes_data[3] += int(400*self.__controller_raw_axes_data[3]*(self.__gain/100)) + 1500
-                    self.__controller_mapped_axes_data[4] += int(400*self.__controller_raw_axes_data[5]*(self.__gain/100) + -400*self.__controller_raw_axes_data[2]*(self.__gain/100)) + 1500
+                    self.__controller_mapped_axes_data[0] += int(-400*self.__controller_raw_axes_data[1])
+                    self.__controller_mapped_axes_data[1] += int(400*self.__controller_raw_axes_data[0])
+                    self.__controller_mapped_axes_data[2] += int(-400*self.__controller_raw_axes_data[4])
+                    self.__controller_mapped_axes_data[3] += int(400*self.__controller_raw_axes_data[3])
+                    self.__controller_mapped_axes_data[4] += int(400*self.__controller_raw_axes_data[5] + -400*self.__controller_raw_axes_data[2])
                 
                 elif self.platform == "Windows":
                     self.__controller_raw_axes_data[4] = self.__map_value(self.__controller_raw_axes_data[4], -1, 1, 0, 1)
                     self.__controller_raw_axes_data[5] = self.__map_value(self.__controller_raw_axes_data[5], -1, 1, 0, 1)
-                    self.__controller_mapped_axes_data[0] += int(-400*self.__controller_raw_axes_data[1]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[1] += int(400*self.__controller_raw_axes_data[0]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[2] += int(-400*self.__controller_raw_axes_data[3]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[3] += int(400*self.__controller_raw_axes_data[2]*(self.__gain/100))
-                    self.__controller_mapped_axes_data[4] += int(-400*self.__controller_raw_axes_data[4]*(self.__gain/100) + 400*self.__controller_raw_axes_data[5]*(self.__gain/100))
+                    self.__controller_mapped_axes_data[0] += int(-400*self.__controller_raw_axes_data[1])
+                    self.__controller_mapped_axes_data[1] += int(400*self.__controller_raw_axes_data[0])
+                    self.__controller_mapped_axes_data[2] += int(-400*self.__controller_raw_axes_data[3])
+                    self.__controller_mapped_axes_data[3] += int(400*self.__controller_raw_axes_data[2])
+                    self.__controller_mapped_axes_data[4] += int(-400*self.__controller_raw_axes_data[4] + 400*self.__controller_raw_axes_data[5])
                 
                 # set the movements values in the pixhawk and move the ROV according to these values, then reset the value for a fresh read
                 for i in range(5):

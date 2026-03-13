@@ -1,11 +1,13 @@
 import socket
 import serial
+import time
 
 HOST = "192.168.33.1"
 PORT = 12345
 SERIAL_PORT = "/dev/ttyUSB0"
 BAUD_RATE = 115200
 
+{"Mosfet1": 0, "Mosfet2": 0, "Mosfet3": 0, "Mosfet4": 0, "Mosfet5": 0, "Mosfet6": 0, "Mosfet7": 0, "bilge": 0, "angle": 1500, "servo_direction": 0}
 
 def handle_client(conn, addr, arduino):
     print(f"Client connected from {addr}")
@@ -22,7 +24,7 @@ def handle_client(conn, addr, arduino):
                 line, buffer = buffer.split("\n", 1) 
                 line = line.strip()
                 if line:
-                    print(f"{line.encode()}")
+                    print(line)
                     arduino.write((line + "\n").encode())
 
     except ConnectionResetError:
