@@ -115,24 +115,6 @@ class Joystick(QThread):
         left axis makes a change from -400 to 0, and this change is added to the 1500,
         and the right axis makes a change from 0 to 400, and this change is also added to the 1500.
         """
-    
-    def get_gain(self): return self.__gain
-    def increase_gain(self): # increases gain by 20 %
-        if self.__gain < 100:
-            self.__gain += 20
-            if self.__gain > 100: self.__gain = 100
-        else: print("gain is maximum")
-
-    def decrease_gain(self): # decreases gain by 20 %
-        if self.__gain > 20:
-            self.__gain -= 20
-            if self.__gain < 20: self.__gain = 20
-        else: print("gain is minimum")
-
-    def set_gain(self, value):
-        if value > 100: self.__gain = 100
-        elif value < 20: self.__gain = 20
-        else: self.__gain = value
 
     def get_name(self): return self.__controller_name
 
