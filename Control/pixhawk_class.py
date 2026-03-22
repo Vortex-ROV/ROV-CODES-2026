@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QThread
+from PySide6.QtCore import QThread
 from pymavlink import mavutil
 import time
 
@@ -49,15 +49,20 @@ class Pixhawk(QThread):
     def get_pwm_value_range(self): return self.__pwm_value_range
 
     def set_throttle_value(self, value):
+        # print(value)
+        self.__throttle_value = 1500
         self.__throttle_value += int(value * (self.__gain/100))
 
     def set_yaw_value(self, value):
+        self.__yaw_value = 1500
         self.__yaw_value += int(value * self.__rov_flip_value * (self.__gain/100))
 
     def set_forward_value(self, value):
+        self.__forward_value = 1500
         self.__forward_value += int(value * self.__rov_flip_value * (self.__gain/100))
 
     def set_lateral_value(self, value):
+        self.__lateral_value = 1500
         self.__lateral_value += int(value * self.__rov_flip_value * (self.__gain/100))
     
     def __check_and_correct_movement_values(self):
@@ -118,13 +123,15 @@ class Pixhawk(QThread):
         mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
         mode_id)
     
-    def control_flip_rov(self): self.__rov_flip_value *= -1
+    def control_flip_rov(self): 
+        self.__rov_flip_value *= -1
+        print("flipped") if self.__rov_flip_value == -1 else print("not flipped")
 
     def run(self):
         self.__running = True
         while self.__running:
             try:
-                self.__pixhawk = mavutil.mavlink_connection("udp:127.0.0.1:14561", autoreconnect=True, source_system=1)
+                self.__pixhawk = mavutil.mavlink_connection("udp:192.168.33.2:14550", autoreconnect=True, source_system=1)
                 print("Waiting to connect to the pixhawk...")
                 self.__pixhawk.wait_heartbeat()
             except OSError:
@@ -134,6 +141,7 @@ class Pixhawk(QThread):
             while self.__running:
                 msg = self.__pixhawk.recv_match()
                 if msg:
+                    # if msg.get_type() == 'SERVO_OUTPUT_RAW': print(msg)
                     if msg.get_type() == 'HEARTBEAT':
                         if self.__connected == False:
                             self.__connected = True
@@ -144,7 +152,6 @@ class Pixhawk(QThread):
                             self.sent_armed = self.__armed
                             if self.__armed != 0: print("armed")
                             else: print("disarmed")
-                            mavutil.mode_string_v10
 
                         self.mode = mavutil.mode_string_v10(msg)
                         if self.mode == "Mode(0x00000000)": self.mode = self.sent_mode
@@ -162,18 +169,20 @@ class Pixhawk(QThread):
     
     def move_rov(self):
         if self.__armed and self.__connected:
-            if self.__throttle_value != 1500:
-                self.__yaw_value = 1500
-                self.__forward_value = 1500
-                self.__lateral_value = 1500
+            # if self.__throttle_value != 1500:
+            #     # print("here")
+            #     self.__yaw_value = 1500
+            #     self.__forward_value = 1500
+            #     self.__lateral_value = 1500
             self.__check_and_correct_movement_values()
             rc_channel_values = [1500, 1500,self.__throttle_value, self.__yaw_value, self.__forward_value, self.__lateral_value, 65535, 65535, 65535]
-            print(rc_channel_values[2:6])
+            # print(rc_channel_values[2:6])
             self.__pixhawk.mav.rc_channels_override_send(
                 self.__pixhawk.target_system,
                 self.__pixhawk.target_component,
                 *rc_channel_values)
-            self.movements_values_reset()
+            # self.movements_values_reset()
+            # time.sleep(1/100)
 
     def stop(self):
         if self.__connected:

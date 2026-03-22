@@ -100,7 +100,7 @@ class Joystick(QThread):
             JoystickAxes.LEFTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.FORWARD],
             JoystickAxes.LEFTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.LATERAL],
             JoystickAxes.RIGHTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.THROTTLE],
-            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.LATERAL],
+            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.NONE],
             JoystickAxes.TRIGGERS.value: self.__rov_movements[GUIControllerMovementActions.YAW]
         }
 
@@ -174,7 +174,7 @@ class Joystick(QThread):
                 for i in range(self.__controller_axes_count):
                     if self.__controller.get_axis(i) > 0.1 or self.__controller.get_axis(i) < -0.1 :
                         self.__controller_raw_axes_data.append(self.__controller.get_axis(i))
-                        # print(self.__controller.get_axis(i), end='')
+                        # print(self.__controller.get_axis(i), end=' ')
                     else: self.__controller_raw_axes_data.append(0)
                 # print()
                     
@@ -255,11 +255,13 @@ class Joystick(QThread):
                 # set the movements values in the pixhawk and move the ROV according to these values, then reset the value for a fresh read
                 for i in range(5):
                     if self.__axis_action_mapping[i] == "": pass
-                    else: self.__axis_event(self.__axis_action_mapping[i], self.__controller_mapped_axes_data[i])
+                    else: 
+                        # print(self.__controller_mapped_axes_data[i], end=' ')
+                        self.__axis_event(self.__axis_action_mapping[i], self.__controller_mapped_axes_data[i])
+                # print()
                 
                 self.pixhawk.move_rov()
 
-             
                 # prepare variables for a fresh read
                 self.__controller_last_buttons_data = self.__controller_buttons_data.copy()
                 self.__controller_last_hats_data[0] = self.__controller_hat_data[0]

@@ -1,0 +1,46 @@
+// pcb_service.proto
+// python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. pcb_service.proto
+
+syntax = "proto3";
+package pcb;
+import "google/protobuf/empty.proto";
+
+message Heartbeat {}
+
+message RemoveProfile {
+  string name = 1;
+}
+message MosfetControl {
+    bool mosfet_1 = 1;
+    bool mosfet_2 = 2;
+    bool mosfet_3 = 3;
+    bool mosfet_4 = 4;
+    bool mosfet_5 = 5;
+    bool mosfet_6 = 6;
+    bool mosfet_7 = 7;
+}
+
+message ServoControl {
+    uint32 angle = 1;
+    int32 raise_lower = 2;
+}
+
+message BilgeControl {
+    int32 speed = 1;
+}
+
+message ShutdownCommand {}
+message ClientMessage {
+  oneof payload {
+    Heartbeat heartbeat = 1;
+    MosfetControl mosfet_control = 2;
+    ServoControl servo_control = 3;
+    BilgeControl bilge_control = 4;
+  }
+}
+
+// Service to control PCB
+service PCBService {
+    // Session definition
+  rpc Session(stream ClientMessage) returns (google.protobuf.Empty);
+}
