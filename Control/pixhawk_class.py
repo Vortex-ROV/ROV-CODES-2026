@@ -1,5 +1,9 @@
-from PyQt6.QtCore import QThread
+from PySide6.QtCore import QThread
 from pymavlink import mavutil
+import pymavlink.dialects.v10.ardupilotmega
+import pymavlink.dialects.v20.ardupilotmega
+import pymavlink.dialects.v10.all
+import pymavlink.dialects.v20.all
 import time
 
 class Pixhawk(QThread):
