@@ -21,7 +21,7 @@ class PCB(QThread):
         self.connected = False
         self.__running = False
 
-        self.__queue: queue.Queue[pb2.ClientMessage] = queue.Queue()
+        self.__queue = queue.Queue()
 
         self.__mosfets = {
             "mosfet_1": False, "mosfet_2": False, "mosfet_3": False,
