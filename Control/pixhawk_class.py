@@ -13,10 +13,11 @@ class Pixhawk(QThread):
         self.__yaw_value = 1500
         self.__forward_value = 1500
         self.__lateral_value = 1500
+        self.__roll_value = 1500
         self.__armed = False
         self.__last_time_seen = 0
         self.__connected = False
-        self.__pwm_value_range = 300
+        self.__pwm_value_range = 350
         self.__gain = 100
         self.__rov_flip_value = 1
         self.sent_armed = False
@@ -55,7 +56,7 @@ class Pixhawk(QThread):
 
     def set_yaw_value(self, value):
         self.__yaw_value = 1500
-        self.__yaw_value += int(value * self.__rov_flip_value * (self.__gain/100))
+        self.__yaw_value += int(value * (self.__gain/100))
 
     def set_forward_value(self, value):
         self.__forward_value = 1500
@@ -64,15 +65,24 @@ class Pixhawk(QThread):
     def set_lateral_value(self, value):
         self.__lateral_value = 1500
         self.__lateral_value += int(value * self.__rov_flip_value * (self.__gain/100))
+
+    def set_roll_value(self, value):
+        self.__roll_value = 1500
+        self.__roll_value += int(value * self.__rov_flip_value * (self.__gain/100))
     
     def __check_and_correct_movement_values(self):
+        if self.__roll_value > (1500 + int(self.__pwm_value_range*(self.__gain/100))): 
+                self.__roll_value = (1500 + int(self.__pwm_value_range*(self.__gain/100)))
+        elif self.__roll_value < (1500 - int(self.__pwm_value_range*(self.__gain/100))): 
+            self.__roll_value = (1500 - int(self.__pwm_value_range*(self.__gain/100)))
+
         if self.__throttle_value > (1500 + int(self.__pwm_value_range*(self.__gain/100))): 
             self.__throttle_value = (1500 + int(self.__pwm_value_range*(self.__gain/100)))
         elif self.__throttle_value < (1500 - int(self.__pwm_value_range*(self.__gain/100))): 
             self.__throttle_value = (1500 - int(self.__pwm_value_range*(self.__gain/100)))
         
         if self.__yaw_value > (1500 + int(self.__pwm_value_range*(self.__gain/100))): 
-            self.__yaw_value = (1500 + int(self.__pwm_value_range*(self.__gain/100)))
+            self.__yaw_value = (1500 + int(1 * self.__pwm_value_range*(self.__gain/100)))
         elif self.__yaw_value < (1500 - int(self.__pwm_value_range*(self.__gain/100))): 
             self.__yaw_value = (1500 - int(self.__pwm_value_range*(self.__gain/100)))
 
@@ -87,6 +97,7 @@ class Pixhawk(QThread):
             self.__lateral_value = (1500 - int(self.__pwm_value_range*(self.__gain/100)))
     
     def movements_values_reset(self):
+        self.__roll_value = 1500
         self.__throttle_value = 1500
         self.__yaw_value = 1500
         self.__forward_value = 1500
@@ -169,14 +180,15 @@ class Pixhawk(QThread):
     
     def move_rov(self):
         if self.__armed and self.__connected:
-            # if self.__throttle_value != 1500:
-            #     # print("here")
-            #     self.__yaw_value = 1500
-            #     self.__forward_value = 1500
-            #     self.__lateral_value = 1500
+            if self.__throttle_value != 1500:
+                # print("here")
+                self.__roll_value = 1500
+                self.__yaw_value = 1500
+                self.__forward_value = 1500
+                self.__lateral_value = 1500
             self.__check_and_correct_movement_values()
-            rc_channel_values = [1500, 1500,self.__throttle_value, self.__yaw_value, self.__forward_value, self.__lateral_value, 65535, 65535, 65535]
-            # print(rc_channel_values[2:6])
+            rc_channel_values = [1500, self.__roll_value,self.__throttle_value, self.__yaw_value, self.__forward_value, self.__lateral_value, 65535, 65535, 65535]
+            print(rc_channel_values[1:6])
             self.__pixhawk.mav.rc_channels_override_send(
                 self.__pixhawk.target_system,
                 self.__pixhawk.target_component,

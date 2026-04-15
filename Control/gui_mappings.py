@@ -81,3 +81,4 @@ class GUIControllerMovementActions(Enum):
     YAW = 2
     FORWARD = 3
     LATERAL = 4
+    ROLL = 5
