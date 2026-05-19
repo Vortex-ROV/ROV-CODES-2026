@@ -12,13 +12,20 @@ BAUD_RATE = 115200
 def handle_client(conn, addr, arduino):
     print(f"Client connected from {addr}")
     buffer = ""
+    last_time_received = time.time()
     try:
         while True:
+            if last_time_received - time.time() > 5:
+                print("no heartbeat received for a while, disconnecting")
+                conn.close()
+                break
             data = conn.recv(1024).decode()
             if not data:
                 print(f"Client {addr} disconnected.")
                 break
-
+            if "heartbeat" in data:
+                print("got heartbeat")
+                last_time_received = time.time()
             buffer += data
             while "\n" in buffer:
                 line, buffer = buffer.split("\n", 1) 
@@ -26,6 +33,7 @@ def handle_client(conn, addr, arduino):
                 if line:
                     print(line)
                     arduino.write((line + "\n").encode())
+                    last_time_received = time.time()
 
     except ConnectionResetError:
         print(f"Client {addr} disconnected unexpectedly.")

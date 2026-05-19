@@ -138,7 +138,8 @@ class Pixhawk(QThread):
             while self.__running:
                 msg = self.__pixhawk.recv_match()
                 if msg:
-                    if msg.get_type() == 'HEARTBEAT':
+                    if msg.get_type() == 'HEARTBEAT' and msg.type != mavutil.mavlink.MAV_TYPE_GCS:
+                        mavutil.mavlink.MAV_TYPE_
                         if self.__connected == False:
                             self.__connected = True
                             print("connected to pixhawk")
@@ -158,7 +159,7 @@ class Pixhawk(QThread):
                             elif self.mode == "STABILIZE": print("stabilize")
                             elif self.mode == "ALT_HOLD": print("depth hold")
                         self.__last_time_seen = time.time()
-                if time.time() - self.__last_time_seen > 1.5:
+                if time.time() - self.__last_time_seen > 3:
                     if self.__connected:
                         self.__connected = False
                         self.sent_mode = ""
