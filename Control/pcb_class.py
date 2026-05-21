@@ -5,7 +5,6 @@ import time
 
 
 class PCB(QThread):
-
     BOTTOM_IP = "192.168.33.1"
     BOTTOM_PORT = 5000
     BIND_PORT = 5001
@@ -91,6 +90,9 @@ class PCB(QThread):
         else:
             self.__send_command("e", "Rotating Tool OFF (MOSFET 5 OFF)")
         print("Rotating Tool:", "rotating" if self.__rotate_tool else "not rotating")
+    def control_raise_camera(self): pass
+    def control_lower_camera(self): pass
+    def control_camera_stop(self): pass
 
     def __heartbeat_sender(self):
         last_reconnect_log = 0.0
