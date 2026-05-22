@@ -93,7 +93,8 @@ class Pixhawk(QThread):
     
     def control_arm_disarm(self):
         # print("Armed" if self.__armed else "Disarmed")
-        self.__pixhawk.arducopter_disarm() if self.__armed else self.__pixhawk.arducopter_arm()
+        if self.__connected:
+            self.__pixhawk.arducopter_disarm() if self.__armed else self.__pixhawk.arducopter_arm()
     
     def control_arm(self):
         self.__pixhawk.arducopter_arm() if self.__armed == 0 else print("pixhawk already armed")
