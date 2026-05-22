@@ -20,7 +20,7 @@ class Pixhawk(QThread):
         self.__armed = False
         self.__last_time_seen = 0
         self.__connected = False
-        self.__pwm_value_range = 300
+        self.__pwm_value_range = 400
         self.__gain = 100
         self.__rov_flip_value = 1
         self.sent_armed = False
@@ -129,7 +129,7 @@ class Pixhawk(QThread):
         self.__running = True
         while self.__running:
             try:
-                self.__pixhawk = mavutil.mavlink_connection("udp:192.168.33.1:14561", autoreconnect=True, source_system=1)
+                self.__pixhawk = mavutil.mavlink_connection("udp:192.168.33.2:14550", autoreconnect=True, source_system=1)
                 print("Waiting to connect to the pixhawk...")
                 self.__pixhawk.wait_heartbeat()
             except OSError:
@@ -140,7 +140,6 @@ class Pixhawk(QThread):
                 msg = self.__pixhawk.recv_match()
                 if msg:
                     if msg.get_type() == 'HEARTBEAT' and msg.type != mavutil.mavlink.MAV_TYPE_GCS:
-                        mavutil.mavlink.MAV_TYPE_
                         if self.__connected == False:
                             self.__connected = True
                             print("connected to pixhawk")
