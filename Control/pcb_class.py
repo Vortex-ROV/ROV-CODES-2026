@@ -7,7 +7,7 @@ import time
 class PCB(QThread):
     BOTTOM_IP = "192.168.33.1"
     BOTTOM_PORT = 5000
-    BIND_PORT = 5001
+    BIND_PORT = 5002
     HB_INTERVAL = 1
     HB_TIMEOUT = 5
     RECONNECT_INTERVAL = 3

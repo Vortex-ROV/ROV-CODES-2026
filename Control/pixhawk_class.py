@@ -128,7 +128,7 @@ class Pixhawk(QThread):
         self.__running = True
         while self.__running:
             try:
-                self.__pixhawk = mavutil.mavlink_connection("udp:127.0.0.1:14561", autoreconnect=True, source_system=1)
+                self.__pixhawk = mavutil.mavlink_connection("udp:192.168.33.1:14561", autoreconnect=True, source_system=1)
                 print("Waiting to connect to the pixhawk...")
                 self.__pixhawk.wait_heartbeat()
             except OSError:
