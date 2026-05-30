@@ -6,6 +6,50 @@ import pymavlink.dialects.v10.all
 import pymavlink.dialects.v20.all
 import time
 
+class PID:
+    def __init__(self, kp=0.35, ki=0.0, kd=0.12, output_limit=400):
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.output_limit = output_limit
+        self.integral = 0
+        self.last_error = 0
+        self.last_time = None
+
+    def compute(self, error):
+        now = time.time()
+
+        if self.last_time is None:
+            self.last_time = now
+            self.last_error = error
+            return 0
+
+        dt = now - self.last_time
+        if dt <= 0:
+            return 0
+
+        self.integral += error * dt
+        derivative = (error - self.last_error) / dt
+
+        output = (
+            self.kp * error +
+            self.ki * self.integral +
+            self.kd * derivative
+        )
+
+        output = max(-self.output_limit, min(self.output_limit, output))
+
+        self.last_error = error
+        self.last_time = now
+
+        return output
+
+    def reset(self):
+        self.integral = 0
+        self.last_error = 0
+        self.last_time = None
+
+
 class Pixhawk(QThread):
     def __init__(self):
         self.__running = False
@@ -189,6 +233,61 @@ class Pixhawk(QThread):
                 self.__pixhawk.target_component,
                 *rc_channel_values)
             self.movements_values_reset()
+    
+    def track_transect(self, rect_center_x, rect_center_y, rect_angle, frame_width, frame_height):
+        if not self.__armed or not self.__connected:
+            return
+
+        camera_center_x = frame_width / 2
+        camera_center_y = frame_height / 2
+
+        error_x = rect_center_x - camera_center_x
+        error_y = rect_center_y - camera_center_y
+
+        # rect_angle لازم يكون الفرق بين زاوية المستطيل والزاوية المطلوبة
+        # يعني لو المستطيل مظبوط يبقى rect_angle = 0
+        angle_error = rect_angle
+
+        if abs(error_x) < self.center_deadzone:
+            error_x = 0
+
+        if abs(error_y) < self.center_deadzone:
+            error_y = 0
+
+        if abs(angle_error) < self.angle_deadzone:
+            angle_error = 0
+
+        lateral_correction = self.pid_lateral.compute(error_x)
+        forward_correction = self.pid_forward.compute(error_y)
+        yaw_correction = self.pid_yaw.compute(angle_error)
+
+        self.__lateral_value = self.__limit_pwm(1500 + lateral_correction)
+        self.__forward_value = self.__limit_pwm(1500 + forward_correction)
+        self.__yaw_value = self.__limit_pwm(1500 + yaw_correction)
+        self.__throttle_value = 1500
+
+        print(
+            "error_x:", int(error_x),
+            "error_y:", int(error_y),
+            "angle_error:", int(angle_error),
+            "lateral_pwm:", self.__lateral_value,
+            "forward_pwm:", self.__forward_value,
+            "yaw_pwm:", self.__yaw_value
+        )
+
+        self.move_rov()
+
+    def stop_transect_tracking(self):
+        self.pid_lateral.reset()
+        self.pid_forward.reset()
+        self.pid_yaw.reset()
+
+        self.__throttle_value = 1500
+        self.__yaw_value = 1500
+        self.__forward_value = 1500
+        self.__lateral_value = 1500
+
+        self.move_rov()
 
     def stop(self):
         if self.__connected:
