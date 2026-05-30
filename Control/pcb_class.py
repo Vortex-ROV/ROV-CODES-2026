@@ -54,17 +54,17 @@ class PCB(QThread):
     def control_gripper_a(self):
         self.__gripper_a = not self.__gripper_a
         if self.__gripper_a:
-            self.__send_command("C", "Gripper A OPEN  (MOSFET 3 ON)")
+            self.__send_command("E", "Gripper A OPEN  (MOSFET 3 ON)")
         else:
-            self.__send_command("c", "Gripper A CLOSE (MOSFET 3 OFF)")
+            self.__send_command("e", "Gripper A CLOSE (MOSFET 3 OFF)")
         print("Gripper A:", self.__gripper_a)
 
     def control_gripper_b(self):
         self.__gripper_b = not self.__gripper_b
         if self.__gripper_b:
-            self.__send_command("B", "Gripper B OPEN  (MOSFET 2 ON)")
+            self.__send_command("G", "Gripper B OPEN  (MOSFET 2 ON)")
         else:
-            self.__send_command("b", "Gripper B CLOSE (MOSFET 2 OFF)")
+            self.__send_command("g", "Gripper B CLOSE (MOSFET 2 OFF)")
         print("Gripper B:", self.__gripper_b)
 
     def control_gripper_c(self):
@@ -86,9 +86,9 @@ class PCB(QThread):
     def control_rotating_tool(self):
         self.__rotate_tool = not self.__rotate_tool
         if self.__rotate_tool:
-            self.__send_command("E", "Rotating Tool ON  (MOSFET 5 ON)")
+            self.__send_command("C", "Rotating Tool ON  (MOSFET 5 ON)")
         else:
-            self.__send_command("e", "Rotating Tool OFF (MOSFET 5 OFF)")
+            self.__send_command("c", "Rotating Tool OFF (MOSFET 5 OFF)")
         print("Rotating Tool:", "rotating" if self.__rotate_tool else "not rotating")
     def control_raise_camera(self): pass
     def control_lower_camera(self): pass

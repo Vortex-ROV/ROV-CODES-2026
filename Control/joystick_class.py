@@ -57,6 +57,7 @@ class Joystick(QThread):
         }
 
         self.__rov_movements = {
+            GUIControllerMovementActions.ROLL: self.pixhawk.set_roll_value,
             GUIControllerMovementActions.THROTTLE: self.pixhawk.set_throttle_value,
             GUIControllerMovementActions.YAW: self.pixhawk.set_yaw_value,
             GUIControllerMovementActions.FORWARD: self.pixhawk.set_forward_value,
@@ -100,7 +101,7 @@ class Joystick(QThread):
             JoystickAxes.LEFTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.FORWARD],
             JoystickAxes.LEFTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.LATERAL],
             JoystickAxes.RIGHTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.THROTTLE],
-            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.LATERAL],
+            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.ROLL],
             JoystickAxes.TRIGGERS.value: self.__rov_movements[GUIControllerMovementActions.YAW]
         }
 
@@ -269,7 +270,7 @@ class Joystick(QThread):
                 self.__controller_mapped_axes_data = [0, 0, 0, 0, 0]
 
             
-                pygame.time.Clock().tick(200)
+                pygame.time.Clock().tick(100)
         
     def __press_event(self, method): method()
     def __release_event(self, method): method()
