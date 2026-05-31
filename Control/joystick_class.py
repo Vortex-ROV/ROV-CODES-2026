@@ -52,7 +52,7 @@ class Joystick(QThread):
             GUIControllerButtonActions.MANUAL_MODE: self.pixhawk.control_manual_mode,
             GUIControllerButtonActions.STABILIZE_MODE: self.pixhawk.control_stabilize_mode,
             GUIControllerButtonActions.DEPTH_HOLD_MODE: self.pixhawk.control_depth_hold_mode,
-            GUIControllerButtonActions.FLIP_ROV: self.pixhawk.control_flip_rov,
+            GUIControllerButtonActions.FLIP_ROV: self.flip_controls_90,
             GUIControllerButtonActions.NONE: "none"
         }
 
@@ -128,10 +128,17 @@ class Joystick(QThread):
         if button not in self.__button_name_mapping: print("Button not available")
         else: return self.__button_action_mapping[self.__button_name_mapping[button]].__name__
 
-    def set_button_mapping(self, button, mapping):# chane what button does what, example: self.set_button_mapping("A", self.pcb.control_gripper_c)
+    def set_button_mapping(self, button, mapping):# change what button does what, example: self.set_button_mapping("A", self.pcb.control_gripper_c)
         if button not in self.__button_name_mapping: print("Button not available")
         else: self.__button_action_mapping[self.__button_name_mapping[button]] = mapping
-
+    
+    def flip_controls_90(self): # swap the lateral and forward axes
+        if  "forward" in self.__rov_movements[GUIControllerMovementActions.FORWARD].__name__:
+            self.__rov_movements[GUIControllerMovementActions.FORWARD] = self.pixhawk.set_lateral_value
+            self.__rov_movements[GUIControllerMovementActions.LATERAL] = self.pixhawk.set_forward_value
+        else:
+            self.__rov_movements[GUIControllerMovementActions.FORWARD] = self.pixhawk.set_forward_value
+            self.__rov_movements[GUIControllerMovementActions.LATERAL] = self.pixhawk.set_lateral_value
 
     def run(self):
         self.__running = True
@@ -146,7 +153,7 @@ class Joystick(QThread):
                 if "Xbox 360 Controller" not in self.__controller_name:
                     print("please plug in only a single xbox 360 controller.")
                     self.__controller.quit()
-                    pygame.time.Clock.tick(10)
+                    pygame.time.Clock.tick(1)
                     continue
                 self.__controller_buttons_count = self.__controller.get_numbuttons()
                 self.__controller_axes_count = self.__controller.get_numaxes()
