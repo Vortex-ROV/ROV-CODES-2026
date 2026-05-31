@@ -10,6 +10,7 @@ class Joystick(QThread):
     def __init__(self):
         if __name__ != "__main__": super().__init__() # qthread inheritance initialization
         self.__running = False
+        self.__flipped = False
         self.platform = platform.system()
         
         # pygame initialization for controller
@@ -101,8 +102,8 @@ class Joystick(QThread):
             JoystickAxes.LEFTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.FORWARD],
             JoystickAxes.LEFTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.LATERAL],
             JoystickAxes.RIGHTVERTICAL.value: self.__rov_movements[GUIControllerMovementActions.THROTTLE],
-            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.ROLL],
-            JoystickAxes.TRIGGERS.value: self.__rov_movements[GUIControllerMovementActions.YAW]
+            JoystickAxes.RIGHTHORIZONTAL.value: self.__rov_movements[GUIControllerMovementActions.YAW],
+            JoystickAxes.TRIGGERS.value: self.__rov_movements[GUIControllerMovementActions.ROLL]
         }
 
         print("initialized class")
@@ -133,12 +134,23 @@ class Joystick(QThread):
         else: self.__button_action_mapping[self.__button_name_mapping[button]] = mapping
     
     def flip_controls_90(self): # swap the lateral and forward axes
-        if  "forward" in self.__rov_movements[GUIControllerMovementActions.FORWARD].__name__:
-            self.__rov_movements[GUIControllerMovementActions.FORWARD] = self.pixhawk.set_lateral_value
-            self.__rov_movements[GUIControllerMovementActions.LATERAL] = self.pixhawk.set_forward_value
+        # print(self.__rov_movements[GUIControllerMovementActions.FORWARD].__name__)
+        self.pixhawk.control_flip_rov()
+        if  self.__flipped == False:
+            print("flipped")
+            self.__flipped = True
+            
+            # self.__rov_movements[GUIControllerMovementActions.FORWARD] = self.pixhawk.set_lateral_value
+            # self.__rov_movements[GUIControllerMovementActions.LATERAL] = self.pixhawk.set_forward_value
+            self.__axis_action_mapping[JoystickAxes.LEFTVERTICAL.value] = self.__rov_movements[GUIControllerMovementActions.LATERAL]
+            self.__axis_action_mapping[JoystickAxes.LEFTHORIZONTAL.value] = self.__rov_movements[GUIControllerMovementActions.FORWARD]
         else:
-            self.__rov_movements[GUIControllerMovementActions.FORWARD] = self.pixhawk.set_forward_value
-            self.__rov_movements[GUIControllerMovementActions.LATERAL] = self.pixhawk.set_lateral_value
+            print("normal")
+            self.__flipped = False
+            self.__axis_action_mapping[JoystickAxes.LEFTVERTICAL.value] = self.__rov_movements[GUIControllerMovementActions.FORWARD]
+            self.__axis_action_mapping[JoystickAxes.LEFTHORIZONTAL.value] = self.__rov_movements[GUIControllerMovementActions.LATERAL]
+            # self.__rov_movements[GUIControllerMovementActions.FORWARD] = self.pixhawk.set_forward_value
+            # self.__rov_movements[GUIControllerMovementActions.LATERAL] = self.pixhawk.set_lateral_value
 
     def run(self):
         self.__running = True

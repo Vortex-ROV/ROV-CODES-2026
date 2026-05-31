@@ -103,13 +103,13 @@ class Pixhawk(QThread):
         self.__throttle_value += int(value * (self.__gain/100))
 
     def set_yaw_value(self, value):
-        self.__yaw_value += int(value * self.__rov_flip_value * (self.__gain/100))
+        self.__yaw_value += int(value * (self.__gain/100))
 
     def set_forward_value(self, value):
-        self.__forward_value += int(value * self.__rov_flip_value * (self.__gain/100))
+        self.__forward_value += int(value * self.__rov_flip_value *(self.__gain/100))
 
     def set_lateral_value(self, value):
-        self.__lateral_value += int(value * self.__rov_flip_value * (self.__gain/100))
+        self.__lateral_value += int(value * (self.__gain/100))
     
     def __check_and_correct_movement_values(self):
         if self.__roll_value > (1500 + int(self.__pwm_value_range*(self.__gain/100))): 
